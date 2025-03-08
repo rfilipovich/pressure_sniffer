@@ -19,6 +19,7 @@ private slots:
     void on_pushButtonPlus_clicked();
 
     void on_pushButtonMinus_clicked();
+    void slot_fillDbgLog(QByteArray &data);
 
 private:
     Ui::MainWindow *ui;

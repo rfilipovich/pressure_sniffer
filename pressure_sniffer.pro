@@ -45,3 +45,20 @@ RESOURCES += \
 
 target.path = /oem/
 INSTALLS += target
+
+
+
+CONFIG(debug, debug|release) {
+    QMAKE_CXXFLAGS ~= s/-O[0123s]//g -funwind-tables
+    QMAKE_CFLAGS ~= s/-O[0123s]//g -funwind-tables
+    QMAKE_LFLAGS ~= s/-O[0123s]//g -funwind-tables
+    QMAKE_CXXFLAGS += -g -O0 -DDEBUG -funwind-tables
+    QMAKE_CFLAGS += -g -O0 -DDEBUG - funwind-tables
+    QMAKE_LFLAGS += -g -O0 -DDEBUG -funwind-tables
+
+#    SOURCES  += LeakTracer.cpp
+}
+
+include(common/common.pri)
+include(linux/linux.pri)
+include(sysconfig/SysConfig.pri)

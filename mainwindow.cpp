@@ -7,6 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     i =0 ;
     ui->setupUi(this);
+
+//!    connect(client, &ClientSideEmulation::onFinishRead, this, &MainWindow::slot_fillDbgLog);
+
+
 }
 
 MainWindow::~MainWindow()
@@ -14,6 +18,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+void MainWindow::slot_fillDbgLog(QByteArray &data)
+{
+
+    QString content = QString::fromLatin1(data);
+    ui->textEditDbgLog->setText(content);
+}
 
 void MainWindow::on_pushButtonPlus_clicked()
 {
