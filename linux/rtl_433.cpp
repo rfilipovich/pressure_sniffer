@@ -87,17 +87,15 @@ void rtl_433::processOutput() {
 
     /* send raw for the rtl433 dbg */
     Q_EMIT rtl433ProcessRawOutput(one_raw_line);
+  //  one_raw_line.remove(QRegExp("[# %]"));
+ //   QStringList percentList = one_raw_line.split('\r', QString::SkipEmptyParts);
+ //   if (!percentList.isEmpty()) {
+ //       res = percentList.last();
+ //   } else {
+ //       res = QString();
+ //   }
 
-    //QString percent = proc.readAllStandardError();
-    one_raw_line.remove(QRegExp("[# %]"));
-    QStringList percentList = one_raw_line.split('\r', QString::SkipEmptyParts);
-    if (!percentList.isEmpty()) {
-        res = percentList.last();
-    } else {
-        res = QString();
-    }
-    //qDebug() << percent;
-    Q_EMIT rtl433ProcessOutput(res);
+    Q_EMIT rtl433ProcessOutput(/* need modificate to parsed JSON line */ one_raw_line);
 }
 
 void rtl_433::processErrorOutput() {

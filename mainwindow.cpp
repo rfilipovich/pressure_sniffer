@@ -1,11 +1,22 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QScrollBar>
+#include <QTextBlock>
+
+/* some defines */
+#define MAIN_TAB_CURENT_INDEX (1)
+
+
+/* main class */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), p_rtl433(NULL),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+   /* setting default tabwidget */
+    ui->tabWidgetMain->setCurrentIndex(MAIN_TAB_CURENT_INDEX);
 
     initAll();
 }
@@ -26,8 +37,17 @@ bool MainWindow::initAll()
 /* init class */
     p_rtl433 = new rtl_433(this);
 
-/* connetion */
+    /* sometimes need stop firstly the rtl_433 */
+    Q_EMIT p_rtl433->stop_rtl433();
+
+/* connetion slots for the rtl_433 */
     connect(p_rtl433, &rtl_433::rtl433ProcessRawOutput, this, &MainWindow::slot_fillRTL433RawLog);
+ //....
+
+/* setting the rtl433 form */
+    QScrollBar *textEditRTL433RawLogBar = new QScrollBar();
+    textEditRTL433RawLogBar->setStyleSheet("QScrollBar:vertical { width: 30px; }");
+    ui->textEditRTL433RawLog->setVerticalScrollBar(textEditRTL433RawLogBar);
 
     return true;
 }
@@ -48,7 +68,21 @@ void MainWindow::on_pushButtonMinus_clicked()
 
 void MainWindow::slot_fillRTL433RawLog(const QString& one_line)
 {
+    quint32 lines = 0;
+
     ui->textEditRTL433RawLog->append(one_line);
+
+    /* delete some lines from the text editor if need */
+//    while((lines = ui->textEditRTL433RawLog->document()->blockCount()) > 10) {
+//        const int lineToDelete = 0;
+//        QTextBlock b = ui->textEditRTL433RawLog->document()->findBlockByLineNumber(lineToDelete);
+//        if (b.isValid()) {
+//            QTextCursor cursor(b);
+//            cursor.select(QTextCursor::BlockUnderCursor);
+//            cursor.removeSelectedText();
+//            cursor.movePosition( QTextCursor::End );
+//        }
+//    };
 }
 
 void MainWindow::on_pushButtonRTL433Ctrl_clicked(bool state)
