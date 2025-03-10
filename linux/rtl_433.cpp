@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QThread>
 #include <QStringList>
+#include <QRegularExpression>
 
 #include "rtl_433.h"
 #include <QtCore/QCoreApplication>
@@ -57,11 +58,10 @@ void rtl_433::stop_rtl433()
     Q_EMIT rtl433Finished();
 }
 
-void rtl_433::start_rtl433(const quint32 freq_hz, const QStringList &prot_list) {
+void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_list) {
     QString cmd = "%1 -f %2 -F json %3";
     QString arg_prot_list;
 
-//    QProcess proc;
     /* apply args */
     cmd = cmd.arg(rtl433_proc_name).arg(freq_hz).arg(arg_prot_list);
 
@@ -73,9 +73,72 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QStringList &prot_list) 
 
     /* get return value */
     if(proc.exitCode() != 0) {
-        LOG(LOG_ERR, QString("Error while running %1: %2; exitCode: %3").arg(cmd).arg(QString(proc.readAllStandardError())).arg(proc.exitCode()));
-        Q_EMIT rtl433Error();
+        disconnect(&proc, &QProcess::readyReadStandardOutput, this, &rtl_433::processOutput);
+        disconnect(&proc, &QProcess::readyReadStandardError, this, &rtl_433::processErrorOutput);
+
+        QString error_code = QString("Error running %1: %2; exitCode: %3")
+                                .arg(cmd).arg(QString(proc.readAllStandardError())).arg(proc.exitCode());
+        LOG(LOG_ERR, error_code);
+        Q_EMIT rtl433Error(error_code);
+        Q_EMIT rtl433Finished();
         return;
+    };
+
+    return;
+}
+
+void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> &supp_proto) {
+    QString cmd = "%1 -R";
+    QString arg_prot_list;
+
+    /* apply args */
+    cmd = cmd.arg(rtl433_proc_name);
+
+    proc.start(cmd);
+    proc.waitForStarted();
+    proc.waitForFinished(5000);
+
+    /* get return value */
+    if(proc.exitCode() != 0) {
+        QString error_code = QString("Error running %1: %2; exitCode: %3")
+                                .arg(cmd).arg(QString(proc.readAllStandardError())).arg(proc.exitCode());
+        LOG(LOG_ERR, error_code);
+        return;
+    };
+
+    /* parse output list and return */
+    QString data = proc.readAllStandardError();
+    QStringList data_list = data.split('\n');
+
+    const QString regex_pattern = "\\[*\\]";
+    QRegularExpression re(regex_pattern, QRegularExpression::CaseInsensitiveOption);
+    re.setPatternOptions(QRegularExpression::MultilineOption);
+    if(re.isValid())
+    {
+        for(const QString& input : data_list){
+            QRegularExpressionMatchIterator it = re.globalMatch(input);
+            if(it.hasNext()) {
+                rtl_433_supported_protocols sup_proto_rec;
+                bool is_disabled = false;
+
+                QStringList temporary_list = input.split("  ", QString::SkipEmptyParts);
+                if(temporary_list.length() < 2) {
+                    is_disabled = true;
+                    temporary_list = input.split("* ", QString::SkipEmptyParts);
+                }
+                if(temporary_list.length() == 2 ) {
+                    QStringList temporary_list2 = temporary_list.at(0).split("  ", QString::SkipEmptyParts);
+                    QStringList _proto_id = temporary_list2.at(0).split("[",  QString::SkipEmptyParts).at(0).split("]", QString::SkipEmptyParts);
+                    if(_proto_id.length() >= 1) {
+                        sup_proto_rec = rtl_433_supported_protocols(this, _proto_id.at(0).toInt(), QString(temporary_list.at(1)), is_disabled);
+
+                        //QRegularExpressionMatch match = it.next();
+                        //QStringList word = match.capturedTexts();// captured(1);
+                        supp_proto.append(sup_proto_rec);
+                    };
+                }
+            }
+        };
     };
 
     return;

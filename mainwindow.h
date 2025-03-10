@@ -5,6 +5,11 @@
 #include <QDebug>
 #include <rtl_433.h>
 
+/* some defines */
+//!#define MAIN_TAB_CURENT_INDEX (1)
+
+#define MAIN_TAB_CURENT_INDEX (3)
+
 namespace Ui {
 class MainWindow;
 }
@@ -22,9 +27,12 @@ private slots:
     void on_pushButtonPlus_clicked();
     void on_pushButtonMinus_clicked();
 
-/* rtl433 debug functionality */
+/* rtl433 TAB */
     void on_pushButtonRTL433Ctrl_clicked(bool state);
     void slot_fillRTL433RawLog(const QString& one_line);
+
+/* DEBUG TAB */
+    void on_testPushButton_pressed();
 
 private:
 // objets

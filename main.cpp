@@ -6,7 +6,7 @@
 #include <QtGui>
 #include <iostream>
 #include <QSettings>
-
+#include "rtl_433.h"
 #include "SysConfig.h"
 #include "log.h"
 
@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("LLL");
 
     QApplication a(argc, argv);
+
+    qRegisterMetaType<rtl_433_supported_protocols>();
+
 
     /* open system config */
     SysConfig cfg(QString("%1/%2.conf")

@@ -58,7 +58,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>
@@ -238,7 +238,7 @@
             <double>0.100000000000000</double>
            </property>
            <property name="value">
-            <double>434.000000000000000</double>
+            <double>433.920000000000016</double>
            </property>
           </widget>
          </item>
@@ -322,6 +322,19 @@
      <attribute name="title">
       <string>Debug</string>
      </attribute>
+     <widget class="QPushButton" name="testPushButton">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>191</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

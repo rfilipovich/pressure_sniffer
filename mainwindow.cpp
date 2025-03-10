@@ -4,10 +4,6 @@
 #include <QScrollBar>
 #include <QTextBlock>
 
-/* some defines */
-#define MAIN_TAB_CURENT_INDEX (1)
-
-
 /* main class */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), p_rtl433(NULL),
@@ -46,7 +42,9 @@ bool MainWindow::initAll()
 
 /* setting the rtl433 form */
     QScrollBar *textEditRTL433RawLogBar = new QScrollBar();
-    textEditRTL433RawLogBar->setStyleSheet("QScrollBar:vertical { width: 30px; }");
+    textEditRTL433RawLogBar->setStyleSheet("QScrollBar:vertical { width: 30px; } ");
+
+    //
     ui->textEditRTL433RawLog->setVerticalScrollBar(textEditRTL433RawLogBar);
 
     return true;
@@ -91,11 +89,26 @@ void MainWindow::on_pushButtonRTL433Ctrl_clicked(bool state)
     if (true == state) {
         ui->pushButtonRTL433Ctrl->setStyleSheet("background-color: red");
         ui->doubleSpinBoxRTL433Freq->setEnabled(false);
+        ui->pushButtonRTL433Ctrl->setText("Stop");
         ui->textEditRTL433RawLog->clear();
-        Q_EMIT p_rtl433->start_rtl433(static_cast<quint32>(ui->doubleSpinBoxRTL433Freq->value()*1000)*1000, QStringList());
+        Q_EMIT p_rtl433->start_rtl433(static_cast<quint32>(ui->doubleSpinBoxRTL433Freq->value()*1000)*1000);
     } else {
         ui->pushButtonRTL433Ctrl->setStyleSheet("background-color: blue");
+        ui->pushButtonRTL433Ctrl->setText("Start");
         ui->doubleSpinBoxRTL433Freq->setEnabled(true);
         Q_EMIT p_rtl433->stop_rtl433();
     }
 }
+
+///////////////////// Debug section in the TABS /////////////////////
+
+
+void MainWindow::on_testPushButton_pressed()
+{
+    QList<rtl_433_supported_protocols> list;
+    Q_EMIT p_rtl433->get_supported_protocols_rtl433(list);
+
+    qDebug() << list << Qt::endl;
+}
+
+
