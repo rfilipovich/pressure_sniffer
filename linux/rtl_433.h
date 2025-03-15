@@ -47,8 +47,6 @@ public:
         this->disabled = disabled;
     }
 
-
-
     virtual ~rtl_433_supported_protocols()
     {}
 
@@ -65,7 +63,7 @@ public:
 
     friend QDebug operator<<(QDebug dbg, const rtl_433_supported_protocols &one_rec)
     {
-        dbg.nospace() << "[proto_id]=" << one_rec.get_proto_id() << ")";
+        dbg.nospace() << "[proto_id]=" << one_rec.get_proto_id();
         return dbg.maybeSpace();
     }
 
@@ -85,6 +83,9 @@ class rtl_433 : public QObject
 
     QProcess proc;
     QString rtl433_proc_name;
+
+/* will cache this list */
+    QList<rtl_433_supported_protocols> proto_supp_cache;
 
 public:
     rtl_433(QObject *parent = Q_NULLPTR);

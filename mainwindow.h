@@ -4,11 +4,12 @@
 #include <QMainWindow>
 #include <QDebug>
 #include <rtl_433.h>
+#include "freq_change_form.h"
+#include "startdialog.h"
 
 /* some defines */
-//!#define MAIN_TAB_CURENT_INDEX (1)
-
-#define MAIN_TAB_CURENT_INDEX (3)
+#define MAIN_TAB_CURENT_INDEX (1)
+//#define MAIN_TAB_CURENT_INDEX (0)
 
 namespace Ui {
 class MainWindow;
@@ -23,9 +24,7 @@ public:
     ~MainWindow();
 
 private slots:
-// test only
-    void on_pushButtonPlus_clicked();
-    void on_pushButtonMinus_clicked();
+    void on_pushButtonMainStart_clicked();
 
 /* rtl433 TAB */
     void on_pushButtonRTL433Ctrl_clicked(bool state);
@@ -33,13 +32,19 @@ private slots:
 
 /* DEBUG TAB */
     void on_testPushButton_pressed();
+    void on_testPushButton_2_pressed();
 
 private:
-// objets
+// objects
     rtl_433 *p_rtl433;
     Ui::MainWindow *ui;
 
+    freq_change_form *p_freq_form;
+    StartDialog *p_StartDialog;
+
 /* functions */
+    /* init all forms */
+    bool initAllSubForms(QWidget *parent = NULL);
     bool initAll();
 
 //test onlys

@@ -59,7 +59,7 @@ void rtl_433::stop_rtl433()
 }
 
 void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_list) {
-    QString cmd = "%1 -f %2 -F json %3";
+    QString cmd = "%1 -f %2 -C si -F json %3";
     QString arg_prot_list;
 
     /* apply args */
@@ -88,8 +88,13 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_lis
 }
 
 void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> &supp_proto) {
+    /* checking cache first */
+    if(proto_supp_cache.length() >= 1) {
+        supp_proto = proto_supp_cache;
+        return;
+    };
+
     QString cmd = "%1 -R";
-    QString arg_prot_list;
 
     /* apply args */
     cmd = cmd.arg(rtl433_proc_name);
@@ -139,6 +144,12 @@ void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> 
                 }
             }
         };
+
+        /* save to cache if need */
+        if(supp_proto.length() >= 1) {
+            proto_supp_cache = supp_proto;
+        }
+
     };
 
     return;

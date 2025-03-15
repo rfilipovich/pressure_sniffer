@@ -30,15 +30,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    waitwindow.cpp
+    waitwindow.cpp \
+    freq_change_form.cpp \
+    startdialog.cpp
 
 HEADERS += \
         mainwindow.h \
-    waitwindow.h
+    waitwindow.h \
+    freq_change_form.h \
+    startdialog.h
 
 FORMS += \
         mainwindow.ui \
-    waitwindow.ui
+    waitwindow.ui \
+    freq_change_form.ui \
+    startdialog.ui
 
 RESOURCES += \
     presssure_sniffer.qrc

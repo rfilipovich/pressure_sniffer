@@ -4,6 +4,13 @@
 #include <QScrollBar>
 #include <QTextBlock>
 
+
+//// addons
+#define ARRAY_SIZE(a)                               \
+  ((sizeof(a) / sizeof(*(a))) /                     \
+  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+
+
 /* main class */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), p_rtl433(NULL),
@@ -22,13 +29,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+bool MainWindow::initAllSubForms(QWidget *parent)
+{
+    p_freq_form = new freq_change_form(parent);
+    p_freq_form->hide();
+
+    p_StartDialog = new StartDialog(parent);
+
+    return true;
+}
 
 bool MainWindow::initAll()
 {
     //!    connect(client, &ClientSideEmulation::onFinishRead, this, &MainWindow::slot_fillDbgLog);
 
+    initAllSubForms(this);
+
 /* preinit forms if need */
     ui->pushButtonRTL433Ctrl->setStyleSheet("background-color: blue");
+    ui->pushButtonMainStart->setStyleSheet("background-color: blue");
 
 /* init class */
     p_rtl433 = new rtl_433(this);
@@ -50,18 +69,25 @@ bool MainWindow::initAll()
     return true;
 }
 
-void MainWindow::on_pushButtonPlus_clicked()
+void MainWindow::on_pushButtonMainStart_clicked()
 {
-    plus_minus_cnt += 10;
-    if(plus_minus_cnt >100) plus_minus_cnt = 100;
-    ui->progressBar->setValue(plus_minus_cnt);
-}
+    const quint32 _freq_array_hz[] =
+    {   433920000,
+        868000000,
+        315000000,
+        345000000,
+        915000000,
+    };
 
-void MainWindow::on_pushButtonMinus_clicked()
-{
-    plus_minus_cnt -= 10;
-    if(plus_minus_cnt < 0) plus_minus_cnt = 0;
-    ui->progressBar->setValue(plus_minus_cnt);
+    const std::list<quint32> freq_std_list(_freq_array_hz + 0, _freq_array_hz + ARRAY_SIZE(_freq_array_hz));
+    QList<quint32> freq_list = QList<quint32>(freq_std_list.begin(), freq_std_list.end());
+
+    /* get supported protocols */
+    QList<rtl_433_supported_protocols> proto_list;
+    p_rtl433->get_supported_protocols_rtl433(proto_list);
+
+    /* show start form */
+    p_StartDialog->show(proto_list, freq_list);
 }
 
 void MainWindow::slot_fillRTL433RawLog(const QString& one_line)
@@ -106,9 +132,15 @@ void MainWindow::on_pushButtonRTL433Ctrl_clicked(bool state)
 void MainWindow::on_testPushButton_pressed()
 {
     QList<rtl_433_supported_protocols> list;
-    Q_EMIT p_rtl433->get_supported_protocols_rtl433(list);
+    p_rtl433->get_supported_protocols_rtl433(list);
 
     qDebug() << list << Qt::endl;
 }
 
+void MainWindow::on_testPushButton_2_pressed()
+{
+p_freq_form->show();
+}
+
+//!testPushButton_2
 
