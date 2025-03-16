@@ -26,6 +26,10 @@ public:
 private slots:
     void on_pushButtonMainStart_clicked();
 
+/* main TAB */
+    void slot_tmain_start_dialog_apply(const QList<rtl_433_supported_protocols> &proto, const quint32 & freq);
+    void slot_tmain_start_dialog_break(void);
+
 /* rtl433 TAB */
     void on_pushButtonRTL433Ctrl_clicked(bool state);
     void slot_fillRTL433RawLog(const QString& one_line);

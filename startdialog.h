@@ -24,12 +24,16 @@ private Q_SLOTS:
     void on_pushButtonStartDialogApply_clicked();
     void on_pushButtonStartDialogBack_clicked();
 
+    void on_comboBoxGroups_currentIndexChanged(const QString &arg1);
+
 Q_SIGNALS:
-    void signal_apply(const rtl_433_supported_protocols &proto, const quint32 & freq);
+    void signal_apply(const QList<rtl_433_supported_protocols> &proto, const quint32 & freq);
     void signal_break(void);
 
 private:
     Ui::StartDialog *ui;
+    QStringList groups_list;
+    QList<rtl_433_supported_protocols> protos_list;
 };
 
 #endif // STARTDIALOG_H

@@ -30,7 +30,7 @@
 rtl_433::rtl_433(QObject *parent) :
     QObject(parent), rtl433_proc_name("rtl_433")
 {
-
+    _is_started = false;
 }
 
 void rtl_433::run() {
@@ -54,13 +54,22 @@ void rtl_433::stop_rtl433()
     disconnect(&proc, &QProcess::readyReadStandardOutput, this, &rtl_433::processOutput);
     disconnect(&proc, &QProcess::readyReadStandardError, this, &rtl_433::processErrorOutput);
 
+    _is_started = false;
+
     LOG(LOG_INFO, QString("Stopped %1 successful.").arg(rtl433_proc_name));
     Q_EMIT rtl433Finished();
 }
 
 void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_list) {
     QString cmd = "%1 -f %2 -C si -F json %3";
-    QString arg_prot_list;
+    QString arg_prot_list = QString("");
+
+    if(prot_list.count() > 0 && (prot_list.at(0) != 0)) {
+        /* need add filtartion for the protocols */
+        foreach (quint16 var, prot_list) {
+            arg_prot_list.append(QString("-R ").arg(var));
+        };
+    }
 
     /* apply args */
     cmd = cmd.arg(rtl433_proc_name).arg(freq_hz).arg(arg_prot_list);
@@ -83,6 +92,8 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_lis
         Q_EMIT rtl433Finished();
         return;
     };
+
+    _is_started = true;
 
     return;
 }

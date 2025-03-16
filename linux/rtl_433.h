@@ -83,12 +83,16 @@ class rtl_433 : public QObject
 
     QProcess proc;
     QString rtl433_proc_name;
+    bool _is_started;
 
 /* will cache this list */
     QList<rtl_433_supported_protocols> proto_supp_cache;
 
 public:
     rtl_433(QObject *parent = Q_NULLPTR);
+    bool is_started(void) {
+        return _is_started;
+    }
 
 public Q_SLOTS:
 /*?*/    void run();

@@ -36,14 +36,14 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="labelType">
+     <widget class="QLabel" name="labelGroups">
       <property name="text">
-       <string>Type:</string>
+       <string>Groups:</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="comboBoxType">
+     <widget class="QComboBox" name="comboBoxGroups">
       <property name="font">
        <font>
         <pointsize>22</pointsize>
@@ -52,17 +52,23 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="labelMoel">
+     <widget class="QLabel" name="labelModels">
       <property name="text">
        <string>Model:</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="comboBoxModel">
+     <widget class="QComboBox" name="comboBoxModels">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>44</height>
+       </size>
+      </property>
       <property name="font">
        <font>
-        <pointsize>22</pointsize>
+        <pointsize>7</pointsize>
        </font>
       </property>
      </widget>
@@ -75,7 +81,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="comboBoxFreq">
+     <widget class="QComboBox" name="comboBoxFreqs">
       <property name="font">
        <font>
         <pointsize>22</pointsize>

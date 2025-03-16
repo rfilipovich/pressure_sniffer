@@ -71,24 +71,61 @@ bool MainWindow::initAll()
 
 void MainWindow::on_pushButtonMainStart_clicked()
 {
-    const quint32 _freq_array_hz[] =
-    {   433920000,
-        868000000,
-        315000000,
-        345000000,
-        915000000,
+    if (false == p_rtl433->is_started()) {
+        const quint32 _freq_array_hz[] =
+        {   433920000,
+            868000000,
+            315000000,
+            345000000,
+            915000000,
+        };
+
+        const std::list<quint32> freq_std_list(_freq_array_hz + 0, _freq_array_hz + ARRAY_SIZE(_freq_array_hz));
+        QList<quint32> freq_list = QList<quint32>(freq_std_list.begin(), freq_std_list.end());
+
+        /* get supported protocols */
+        QList<rtl_433_supported_protocols> proto_list;
+        p_rtl433->get_supported_protocols_rtl433(proto_list);
+
+        connect(p_StartDialog, &StartDialog::signal_apply, this, &MainWindow::slot_tmain_start_dialog_apply);
+        connect(p_StartDialog, &StartDialog::signal_break, this, &MainWindow::slot_tmain_start_dialog_break);
+
+        /* show start form */
+        p_StartDialog->show(proto_list, freq_list);
+    } else {
+        ui->pushButtonMainStart->setStyleSheet("background-color: blue");
+        ui->pushButtonMainStart->setText("Start");
+        Q_EMIT p_rtl433->stop_rtl433();
     };
-
-    const std::list<quint32> freq_std_list(_freq_array_hz + 0, _freq_array_hz + ARRAY_SIZE(_freq_array_hz));
-    QList<quint32> freq_list = QList<quint32>(freq_std_list.begin(), freq_std_list.end());
-
-    /* get supported protocols */
-    QList<rtl_433_supported_protocols> proto_list;
-    p_rtl433->get_supported_protocols_rtl433(proto_list);
-
-    /* show start form */
-    p_StartDialog->show(proto_list, freq_list);
 }
+
+void MainWindow::slot_tmain_start_dialog_apply(const QList<rtl_433_supported_protocols> &protos_list, const quint32 & freq)
+{
+    disconnect(p_StartDialog, &StartDialog::signal_apply, this, &MainWindow::slot_tmain_start_dialog_apply);
+    disconnect(p_StartDialog, &StartDialog::signal_break, this, &MainWindow::slot_tmain_start_dialog_break);
+
+    qDebug() << "slot_tmain_start_dialog_apply proto_list:" << protos_list << "freq:" << freq;
+
+    if (false == p_rtl433->is_started()) {
+        ui->pushButtonMainStart->setStyleSheet("background-color: red");
+        ui->pushButtonMainStart->setText("Stop");
+
+        QList<quint16> protocols;
+        foreach (rtl_433_supported_protocols var, protos_list) {
+            protocols.append(var.get_proto_id());
+        };
+
+        Q_EMIT p_rtl433->start_rtl433(freq, protocols);
+    };
+}
+
+void MainWindow::slot_tmain_start_dialog_break(void)
+{
+    disconnect(p_StartDialog, &StartDialog::signal_apply, this, &MainWindow::slot_tmain_start_dialog_apply);
+    disconnect(p_StartDialog, &StartDialog::signal_break, this, &MainWindow::slot_tmain_start_dialog_break);
+}
+
+
 
 void MainWindow::slot_fillRTL433RawLog(const QString& one_line)
 {
