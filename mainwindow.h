@@ -8,8 +8,8 @@
 #include "startdialog.h"
 
 /* some defines */
-#define MAIN_TAB_CURENT_INDEX (1)
-//#define MAIN_TAB_CURENT_INDEX (0)
+//#define MAIN_TAB_CURENT_INDEX (1)
+#define MAIN_TAB_CURENT_INDEX (0)
 
 namespace Ui {
 class MainWindow;
@@ -27,7 +27,7 @@ private slots:
     void on_pushButtonMainStart_clicked();
 
 /* main TAB */
-    void slot_tmain_start_dialog_apply(const QList<rtl_433_supported_protocols> &proto, const quint32 & freq);
+    void slot_tmain_start_dialog_apply(const QList<quint16> &proto_id_list, const quint32 & freq);
     void slot_tmain_start_dialog_break(void);
 
 /* rtl433 TAB */

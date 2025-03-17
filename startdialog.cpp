@@ -54,18 +54,31 @@ void StartDialog::show(const QList<rtl_433_supported_protocols> &protos_list, co
 
 void StartDialog::on_pushButtonStartDialogApply_clicked()
 {
-    QList<rtl_433_supported_protocols> protos_list;
+    QList<quint16> proto_id_list;
     quint32 freq;
 
     if((ui->comboBoxModels->currentIndex() == 0) && (ui->comboBoxGroups->currentIndex() == 0)) {
     /* enable all protocols */
         const rtl_433_supported_protocols _all_proto = rtl_433_supported_protocols(this, 0, QString("all"), false);
         protos_list.append(_all_proto);
+    } else {/* need add -R option to the rtl_433 */
+        if(0 == ui->comboBoxGroups->currentIndex()) {
+            proto_id_list.append(ui->comboBoxModels->currentData().toUInt());
+        } else {
+        /* has not all group */
+            if(ui->comboBoxModels->currentIndex() == 0) {
+                for(int i = 1; i < ui->comboBoxModels->count(); i++) {
+                    proto_id_list.append(ui->comboBoxModels->itemData(i).toUInt());
+                };
+            } else {
+                proto_id_list.append(ui->comboBoxModels->currentData().toUInt());
+            };
+        }
     };
 
     freq = ui->comboBoxFreqs->currentData().toInt();
 
-    Q_EMIT signal_apply(protos_list, freq);
+    Q_EMIT signal_apply(proto_id_list, freq);
 
     this->hide();
 }

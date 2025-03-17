@@ -99,23 +99,23 @@ void MainWindow::on_pushButtonMainStart_clicked()
     };
 }
 
-void MainWindow::slot_tmain_start_dialog_apply(const QList<rtl_433_supported_protocols> &protos_list, const quint32 & freq)
+void MainWindow::slot_tmain_start_dialog_apply(const QList<quint16> &proto_id_list, const quint32 & freq)
 {
     disconnect(p_StartDialog, &StartDialog::signal_apply, this, &MainWindow::slot_tmain_start_dialog_apply);
     disconnect(p_StartDialog, &StartDialog::signal_break, this, &MainWindow::slot_tmain_start_dialog_break);
 
-    qDebug() << "slot_tmain_start_dialog_apply proto_list:" << protos_list << "freq:" << freq;
+    qDebug() << "slot_tmain_start_dialog_apply proto_list:" << proto_id_list << "freq:" << freq;
 
     if (false == p_rtl433->is_started()) {
         ui->pushButtonMainStart->setStyleSheet("background-color: red");
         ui->pushButtonMainStart->setText("Stop");
 
-        QList<quint16> protocols;
-        foreach (rtl_433_supported_protocols var, protos_list) {
-            protocols.append(var.get_proto_id());
-        };
+    //    QList<quint16> protocols;
+    //    foreach (rtl_433_supported_protocols var, protos_list) {
+    //        protocols.append(var.get_proto_id());
+    //    };
 
-        Q_EMIT p_rtl433->start_rtl433(freq, protocols);
+        Q_EMIT p_rtl433->start_rtl433(freq, proto_id_list);
     };
 }
 

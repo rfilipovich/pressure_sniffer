@@ -76,6 +76,7 @@ protected:
 Q_DECLARE_METATYPE(rtl_433_supported_protocols)
 
 
+class QJsonObject;
 
 class rtl_433 : public QObject
 {
@@ -110,7 +111,7 @@ private Q_SLOTS:
 Q_SIGNALS:
     void rtl433Error(QString &err_message);
     void rtl433Finished();
-    void rtl433ProcessOutput(const QString& json_line);
+    void rtl433ProcessOutput(const QJsonObject& json_object);
     void rtl433ProcessRawOutput(const QString& one_line);
 };
 

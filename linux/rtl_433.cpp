@@ -10,6 +10,8 @@
 
 #include "rtl_433.h"
 #include <QtCore/QCoreApplication>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +69,7 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_lis
     if(prot_list.count() > 0 && (prot_list.at(0) != 0)) {
         /* need add filtartion for the protocols */
         foreach (quint16 var, prot_list) {
-            arg_prot_list.append(QString("-R ").arg(var));
+            arg_prot_list.append(QString(" -R %1").arg(var));
         };
     }
 
@@ -168,19 +170,22 @@ void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> 
 
 void rtl_433::processOutput() {
     QString res;
+
+
+    /** need add windows buffer because line can be without \n, need summ all to \n **/
     QString one_raw_line = proc.readAllStandardOutput();
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(one_raw_line.toLatin1(), &error);
+    if(!doc.isNull()) {
+        QJsonObject jsonRootObj = doc.object();
+        Q_EMIT rtl433ProcessOutput(jsonRootObj);
+    } else {
+        qDebug() << "parse JSON -> failed: " << one_raw_line;
+    };
 
     /* send raw for the rtl433 dbg */
     Q_EMIT rtl433ProcessRawOutput(one_raw_line);
-  //  one_raw_line.remove(QRegExp("[# %]"));
- //   QStringList percentList = one_raw_line.split('\r', QString::SkipEmptyParts);
- //   if (!percentList.isEmpty()) {
- //       res = percentList.last();
- //   } else {
- //       res = QString();
- //   }
-
-    Q_EMIT rtl433ProcessOutput(/* need modificate to parsed JSON line */ one_raw_line);
 }
 
 void rtl_433::processErrorOutput() {

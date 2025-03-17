@@ -27,7 +27,7 @@ private Q_SLOTS:
     void on_comboBoxGroups_currentIndexChanged(const QString &arg1);
 
 Q_SIGNALS:
-    void signal_apply(const QList<rtl_433_supported_protocols> &proto, const quint32 & freq);
+    void signal_apply(const QList<quint16> &proto_id_list, const quint32 & freq);
     void signal_break(void);
 
 private:
