@@ -90,14 +90,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="labelStatistics">
          <property name="font">
           <font>
            <pointsize>7</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>&gt;</string>
+          <string/>
          </property>
         </widget>
        </item>

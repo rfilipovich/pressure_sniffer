@@ -85,6 +85,7 @@ class rtl_433 : public QObject
     QProcess proc;
     QString rtl433_proc_name;
     bool _is_started;
+    QByteArray outputBuff;
 
 /* will cache this list */
     QList<rtl_433_supported_protocols> proto_supp_cache;
@@ -109,10 +110,10 @@ private Q_SLOTS:
     void processErrorOutput();
 
 Q_SIGNALS:
-    void rtl433Error(QString &err_message);
-    void rtl433Finished();
-    void rtl433ProcessOutput(const QJsonObject& json_object);
-    void rtl433ProcessRawOutput(const QString& one_line);
+    void signal_rtl433Error(QString &err_message);
+    void signal_rtl433Finished();
+    void signal_rtl433ProcessOutput(const QJsonObject& json_object);
+    void signal_rtl433ProcessRawOutput(const QString& one_line);
 };
 
 

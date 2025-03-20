@@ -15,6 +15,35 @@ namespace Ui {
 class MainWindow;
 }
 
+
+class statistics_t {
+    int recive_recs;
+    int unical_recs;
+
+public:
+    explicit statistics_t() {
+        reset();
+    }
+
+    void reset(void) {
+        recive_recs = 0;
+        unical_recs = 0;
+    }
+
+    inline void inc_recive_cnt() {
+        recive_recs++;
+    }
+
+    inline void inc_unical_cnt() {
+        unical_recs++;
+    }
+
+    QString get_statiscs_string() {
+        QString out("all: %1, unical: %2");
+        return out.arg(recive_recs).arg(unical_recs);
+    }
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -29,6 +58,8 @@ private slots:
 /* main TAB */
     void slot_tmain_start_dialog_apply(const QList<quint16> &proto_id_list, const quint32 & freq);
     void slot_tmain_start_dialog_break(void);
+    void slot_main_tab_rtl433ProcessOutput(const QJsonObject& json_object);
+    void slot_main_tab_rtl433Finished();
 
 /* rtl433 TAB */
     void on_pushButtonRTL433Ctrl_clicked(bool state);
@@ -45,6 +76,8 @@ private:
 
     freq_change_form *p_freq_form;
     StartDialog *p_StartDialog;
+
+    statistics_t recs_statistics;
 
 /* functions */
     /* init all forms */

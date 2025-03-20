@@ -3,6 +3,10 @@
 
 #include <QScrollBar>
 #include <QTextBlock>
+#include <QMessageBox>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QTimer>
 
 
 //// addons
@@ -56,7 +60,7 @@ bool MainWindow::initAll()
     Q_EMIT p_rtl433->stop_rtl433();
 
 /* connetion slots for the rtl_433 */
-    connect(p_rtl433, &rtl_433::rtl433ProcessRawOutput, this, &MainWindow::slot_fillRTL433RawLog);
+    connect(p_rtl433, &rtl_433::signal_rtl433ProcessRawOutput, this, &MainWindow::slot_fillRTL433RawLog);
  //....
 
 /* setting the rtl433 form */
@@ -68,6 +72,9 @@ bool MainWindow::initAll()
 
     return true;
 }
+
+
+////////////// main TAB ///////////////////
 
 void MainWindow::on_pushButtonMainStart_clicked()
 {
@@ -95,6 +102,11 @@ void MainWindow::on_pushButtonMainStart_clicked()
     } else {
         ui->pushButtonMainStart->setStyleSheet("background-color: blue");
         ui->pushButtonMainStart->setText("Start");
+
+        /* disconnect slots */
+        disconnect(p_rtl433, &rtl_433::signal_rtl433ProcessOutput, this, &MainWindow:: slot_main_tab_rtl433ProcessOutput);
+        disconnect(p_rtl433, &rtl_433::signal_rtl433Finished, this, &MainWindow:: slot_main_tab_rtl433Finished);
+
         Q_EMIT p_rtl433->stop_rtl433();
     };
 }
@@ -115,6 +127,13 @@ void MainWindow::slot_tmain_start_dialog_apply(const QList<quint16> &proto_id_li
     //        protocols.append(var.get_proto_id());
     //    };
 
+        connect(p_rtl433, &rtl_433::signal_rtl433ProcessOutput, this, &MainWindow:: slot_main_tab_rtl433ProcessOutput);
+        connect(p_rtl433, &rtl_433::signal_rtl433Finished, this, &MainWindow:: slot_main_tab_rtl433Finished);
+
+        //// init statistics
+        recs_statistics.reset();
+        ui->labelStatistics->setText(recs_statistics.get_statiscs_string());
+
         Q_EMIT p_rtl433->start_rtl433(freq, proto_id_list);
     };
 }
@@ -125,7 +144,47 @@ void MainWindow::slot_tmain_start_dialog_break(void)
     disconnect(p_StartDialog, &StartDialog::signal_break, this, &MainWindow::slot_tmain_start_dialog_break);
 }
 
+void MainWindow::slot_main_tab_rtl433Finished()
+{
+    disconnect(p_rtl433, &rtl_433::signal_rtl433ProcessOutput, this, &MainWindow:: slot_main_tab_rtl433ProcessOutput);
+    disconnect(p_rtl433, &rtl_433::signal_rtl433Finished, this, &MainWindow:: slot_main_tab_rtl433Finished);
 
+    /* imitate pressing the button */
+    on_pushButtonMainStart_clicked();
+}
+
+void MainWindow::slot_main_tab_rtl433ProcessOutput(const QJsonObject& json_object)
+{
+    recs_statistics.inc_recive_cnt();
+    ui->labelStatistics->setText(recs_statistics.get_statiscs_string());
+
+
+    /////////////////////////////////////////////////////////////////
+    ////// test varian printing the recived value to the dialog //////
+    /// test
+    QJsonDocument test_doc(json_object);
+
+    /// notification dialog for the new messages
+    QMessageBox *message = new QMessageBox(QMessageBox::Icon::NoIcon, tr(""),
+        test_doc.toJson(QJsonDocument::Compact), QMessageBox::Button::Ok, this);
+    message->setDefaultButton(QMessageBox::Button::Ok);
+    message->open();
+    connect(message, &QDialog::finished, this, [message] {
+        message->deleteLater();
+    });
+    QTimer *timer = new QTimer(message);
+    timer->setSingleShot(true);
+    connect(timer, &QTimer::timeout, this, [message] {
+        message->accept();
+    });
+    timer->start(10000);
+    /////////////////////////////////////////////////////////////////
+}
+
+
+
+
+///////////////////// rtl433 TAB /////////////////////
 
 void MainWindow::slot_fillRTL433RawLog(const QString& one_line)
 {

@@ -59,7 +59,7 @@ void rtl_433::stop_rtl433()
     _is_started = false;
 
     LOG(LOG_INFO, QString("Stopped %1 successful.").arg(rtl433_proc_name));
-    Q_EMIT rtl433Finished();
+    Q_EMIT signal_rtl433Finished();
 }
 
 void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_list) {
@@ -79,6 +79,9 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_lis
     connect(&proc, &QProcess::readyReadStandardOutput, this, &rtl_433::processOutput);
     connect(&proc, &QProcess::readyReadStandardError, this, &rtl_433::processErrorOutput);
 
+    /* clear buffer array */
+    outputBuff.clear();
+
     proc.start(cmd);
     proc.waitForStarted();
 
@@ -90,8 +93,8 @@ void rtl_433::start_rtl433(const quint32 freq_hz, const QList<quint16> &prot_lis
         QString error_code = QString("Error running %1: %2; exitCode: %3")
                                 .arg(cmd).arg(QString(proc.readAllStandardError())).arg(proc.exitCode());
         LOG(LOG_ERR, error_code);
-        Q_EMIT rtl433Error(error_code);
-        Q_EMIT rtl433Finished();
+        Q_EMIT signal_rtl433Error(error_code);
+        Q_EMIT signal_rtl433Finished();
         return;
     };
 
@@ -107,6 +110,7 @@ void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> 
         return;
     };
 
+    QProcess proc;
     QString cmd = "%1 -R";
 
     /* apply args */
@@ -169,23 +173,31 @@ void rtl_433::get_supported_protocols_rtl433(QList<rtl_433_supported_protocols> 
 }
 
 void rtl_433::processOutput() {
-    QString res;
-
-
-    /** need add windows buffer because line can be without \n, need summ all to \n **/
     QString one_raw_line = proc.readAllStandardOutput();
+    outputBuff.append(one_raw_line.toLatin1());
 
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(one_raw_line.toLatin1(), &error);
-    if(!doc.isNull()) {
-        QJsonObject jsonRootObj = doc.object();
-        Q_EMIT rtl433ProcessOutput(jsonRootObj);
-    } else {
-        qDebug() << "parse JSON -> failed: " << one_raw_line;
+    int index = outputBuff.indexOf('\n');
+    while(index >= 0) {
+        QByteArray tmp = outputBuff;
+        QJsonParseError error;
+
+        /* for the one iteration need only one string with the '\n' in the end */
+        tmp.truncate(index);
+        QJsonDocument doc = QJsonDocument::fromJson(tmp, &error);
+        if(!doc.isNull()) {
+            QJsonObject jsonRootObj = doc.object();
+            Q_EMIT signal_rtl433ProcessOutput(jsonRootObj);
+        } else {
+            qDebug() << "parse JSON -> failed: " << one_raw_line;
+        };
+
+        /* prepering to neext iteration */
+        outputBuff.remove(0, index+1);
+        index = outputBuff.indexOf('\n');
     };
 
     /* send raw for the rtl433 dbg */
-    Q_EMIT rtl433ProcessRawOutput(one_raw_line);
+    Q_EMIT signal_rtl433ProcessRawOutput(one_raw_line);
 }
 
 void rtl_433::processErrorOutput() {
@@ -193,5 +205,5 @@ void rtl_433::processErrorOutput() {
     QString one_raw_line = proc.readAllStandardError();
 
     /* send raw for the rtl433 dbg */
-    Q_EMIT rtl433ProcessRawOutput(one_raw_line);
+    Q_EMIT signal_rtl433ProcessRawOutput(one_raw_line);
 }
