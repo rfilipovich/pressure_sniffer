@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
-    <height>448</height>
+    <width>240</width>
+    <height>338</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -73,7 +73,7 @@
         <x>0</x>
         <y>0</y>
         <width>231</width>
-        <height>241</height>
+        <height>251</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -104,7 +104,28 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableWidgetMainOutput"/>
+        <widget class="QListWidget" name="listWidgetMainTable">
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::NoContextMenu</enum>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::WinPanel</enum>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOn</enum>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer">

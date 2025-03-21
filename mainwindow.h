@@ -34,6 +34,10 @@ public:
         recive_recs++;
     }
 
+    inline int get_recive_cnt() {
+        return recive_recs;
+    }
+
     inline void inc_unical_cnt() {
         unical_recs++;
     }
@@ -83,6 +87,10 @@ private:
     /* init all forms */
     bool initAllSubForms(QWidget *parent = NULL);
     bool initAll();
+
+    /* corrret fill  */
+    QString fill_item_from_json(const quint32 &index, const QJsonObject& json_object);
+    void show_main_dialog_info(const quint32 &index, const QJsonObject& json_object);
 
 //test onlys
     int plus_minus_cnt;

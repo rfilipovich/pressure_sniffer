@@ -7,6 +7,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QTimer>
+#include <QListWidgetItem>
+#include <QBrush>
 
 
 //// addons
@@ -122,6 +124,8 @@ void MainWindow::slot_tmain_start_dialog_apply(const QList<quint16> &proto_id_li
         ui->pushButtonMainStart->setStyleSheet("background-color: red");
         ui->pushButtonMainStart->setText("Stop");
 
+        ui->listWidgetMainTable->clear();
+
     //    QList<quint16> protocols;
     //    foreach (rtl_433_supported_protocols var, protos_list) {
     //        protocols.append(var.get_proto_id());
@@ -153,12 +157,36 @@ void MainWindow::slot_main_tab_rtl433Finished()
     on_pushButtonMainStart_clicked();
 }
 
-void MainWindow::slot_main_tab_rtl433ProcessOutput(const QJsonObject& json_object)
+QString MainWindow::fill_item_from_json(const quint32 &index, const QJsonObject& json_object)
 {
-    recs_statistics.inc_recive_cnt();
-    ui->labelStatistics->setText(recs_statistics.get_statiscs_string());
+    QString output;
 
+    QString type;
+    if(json_object.value("type").toString() == QString("TPMS"))
+    {/* pressure sensors! */
+        QString model = json_object.value("model").toString();
+        if(model.length() > 10) {
+        /* delete midle for mte string, len must be maximum 10 chars */
+            model = model.left(5) + QString('.') + model.right(5);
+        }
+        output = QString("TPMS[%1](%2)>ID:%3,P:%4 Bar,T:%5 C")
+                .arg(index, 3, 10, QChar('0'))
+                .arg(model)
+                .arg(json_object.value("id").toString())
+                .arg(QString::number((json_object.value("pressure_kPa").toDouble()/100), 'f', 2))
+                .arg(QString::number(json_object.value("temperature_C").toDouble(), 'f', 2))
+                .arg(json_object.value("flags").toString());
+    } else {
+    /* all other devise is there */
+        //TODO:!!!!
 
+    }
+
+    return output;
+}
+
+void MainWindow::show_main_dialog_info(const quint32 &index, const QJsonObject& json_object)
+{
     /////////////////////////////////////////////////////////////////
     ////// test varian printing the recived value to the dialog //////
     /// test
@@ -177,8 +205,25 @@ void MainWindow::slot_main_tab_rtl433ProcessOutput(const QJsonObject& json_objec
     connect(timer, &QTimer::timeout, this, [message] {
         message->accept();
     });
-    timer->start(10000);
+    timer->start(40000);
     /////////////////////////////////////////////////////////////////
+}
+
+void MainWindow::slot_main_tab_rtl433ProcessOutput(const QJsonObject& json_object)
+{
+    recs_statistics.inc_recive_cnt();
+    ui->labelStatistics->setText(recs_statistics.get_statiscs_string());
+
+    /* add record to the list */
+    QListWidgetItem *_aitem = new QListWidgetItem(fill_item_from_json(
+                                    recs_statistics.get_recive_cnt()%1000/*0...999*/, json_object));
+    ui->listWidgetMainTable->addItem(_aitem);
+    if((recs_statistics.get_recive_cnt()&1) != 0) {
+        _aitem->setBackground(QBrush(Qt::gray));
+    }
+
+    /* show info dialog */
+    show_main_dialog_info(recs_statistics.get_recive_cnt(), json_object);
 }
 
 
