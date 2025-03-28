@@ -9,6 +9,8 @@
 #include <QTimer>
 #include <QListWidgetItem>
 #include <QBrush>
+#include <QJsonValue>
+#include <QCollator>
 
 
 //// addons
@@ -65,12 +67,36 @@ bool MainWindow::initAll()
     connect(p_rtl433, &rtl_433::signal_rtl433ProcessRawOutput, this, &MainWindow::slot_fillRTL433RawLog);
  //....
 
+/* main tab */
+    {
+        QScrollBar *_scroll_bar_V = new QScrollBar();
+        _scroll_bar_V->setStyleSheet("QScrollBar:vertical { width: 25px; } ");
+        ui->listWidgetMainTable->setVerticalScrollBar(_scroll_bar_V);
+
+        QScrollBar *_scroll_bar_H = new QScrollBar();
+        _scroll_bar_H->setStyleSheet("QScrollBar:horizontal { height: 25px; } ");
+        ui->listWidgetMainTable->setHorizontalScrollBar(_scroll_bar_H);
+    };
+
 /* setting the rtl433 form */
     QScrollBar *textEditRTL433RawLogBar = new QScrollBar();
     textEditRTL433RawLogBar->setStyleSheet("QScrollBar:vertical { width: 30px; } ");
 
     //
     ui->textEditRTL433RawLog->setVerticalScrollBar(textEditRTL433RawLogBar);
+
+#if 0
+    ///////////////// main list DBG
+    ///
+    for(int i = 0; i < 20; i++) {
+        QString str;
+            str.append(i);
+            str.append("sjfajiaj'fjaifnha[ghaiognainganga :lkalflanfkjanfanlfknalkfnakfnfn");
+        QListWidgetItem *_aitem = new QListWidgetItem(str);
+        ui->listWidgetMainTable->addItem(_aitem);
+    };
+    //////////////////////////////////////////
+#endif
 
     return true;
 }
@@ -157,29 +183,76 @@ void MainWindow::slot_main_tab_rtl433Finished()
     on_pushButtonMainStart_clicked();
 }
 
+static void sort_qstring_list(QStringList &list)
+{
+    QCollator collator;
+    collator.setNumericMode(true);
+
+    std::sort(
+        list.begin(),
+        list.end(),
+        [&](const QString &key1, const QString &key2)
+        {
+            return collator.compare(key1, key2) < 0;
+        });
+}
+
+
 QString MainWindow::fill_item_from_json(const quint32 &index, const QJsonObject& json_object)
 {
     QString output;
-
     QString type;
+
+    QString model = json_object.value("model").toString();
+    if(model.length() > 10) {
+    /* delete midle for mte string, len must be maximum 10 chars */
+        model = model.left(5) + QString('.') + model.right(5);
+    };
+
     if(json_object.value("type").toString() == QString("TPMS"))
     {/* pressure sensors! */
-        QString model = json_object.value("model").toString();
-        if(model.length() > 10) {
-        /* delete midle for mte string, len must be maximum 10 chars */
-            model = model.left(5) + QString('.') + model.right(5);
-        }
-        output = QString("TPMS[%1](%2)>ID:%3,P:%4 Bar,T:%5 C")
+        output = QString("TPMS[%1](%2)>ID:%3,P:%4 Bar,T:%5 C,F:%6")
                 .arg(index, 3, 10, QChar('0'))
                 .arg(model)
-                .arg(json_object.value("id").toString())
+                .arg(json_object.value("id").toVariant().toString())
                 .arg(QString::number((json_object.value("pressure_kPa").toDouble()/100), 'f', 2))
                 .arg(QString::number(json_object.value("temperature_C").toDouble(), 'f', 2))
-                .arg(json_object.value("flags").toString());
+                .arg(json_object.value("flags").toVariant().toString());
     } else {
     /* all other devise is there */
-        //TODO:!!!!
+        const QStringList exclude_keys = { "id", "model",  "pressure_kPa", "temperature_C", "time" };
+        QStringList keys = json_object.keys();
 
+        /* sort this list */
+        sort_qstring_list(keys);
+
+        /* add constant part */
+        output = QString("TPMS[%1](%2)>ID:%3")
+                .arg(index, 3, 10, QChar('0'))
+                .arg(model)
+                .arg(json_object.value("id").toVariant().toString());
+
+        /* pressure */
+        if(0 <= keys.indexOf(QLatin1String("pressure_kPa"), 0)) {
+            output.append(QString(",P:%1 Bar").arg(QString::number((json_object.value("pressure_kPa").toDouble()/100), 'f', 2)));
+        };
+
+        /* temp */
+        if(0 <= keys.indexOf(QLatin1String("temperature_C"), 0)) {
+            output.append(QString(",T:%1 C").arg(QString::number(json_object.value("temperature_C").toDouble(), 'f', 2)));
+        };
+
+        /////// add other keys //////
+        for (QString &key : keys) {
+            if(0 <= exclude_keys.indexOf(QLatin1String(key.toLatin1()), 0)) {
+                continue;
+            };
+
+            QString app = QString(",%1:%2")
+                    .arg(key)
+                    .arg(json_object.value(key.toLatin1()).toVariant().toString());
+            output.append(app);
+        };
     }
 
     return output;
@@ -187,14 +260,28 @@ QString MainWindow::fill_item_from_json(const quint32 &index, const QJsonObject&
 
 void MainWindow::show_main_dialog_info(const quint32 &index, const QJsonObject& json_object)
 {
-    /////////////////////////////////////////////////////////////////
-    ////// test varian printing the recived value to the dialog //////
-    /// test
-    QJsonDocument test_doc(json_object);
+    QString text_doc;
+
+    text_doc.append('\n');
+    QStringList keys = json_object.keys();
+
+    /* sort this list */
+    sort_qstring_list(keys);
+
+    foreach (QString key, keys) {
+        text_doc.append(key);
+        text_doc.append(':');
+        text_doc.append(json_object.value(key.toLatin1()).toVariant().toString());
+        text_doc.append('\n');
+    };
 
     /// notification dialog for the new messages
+    QSpacerItem* horizontalSpacer = new QSpacerItem(240, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
     QMessageBox *message = new QMessageBox(QMessageBox::Icon::NoIcon, tr(""),
-        test_doc.toJson(QJsonDocument::Compact), QMessageBox::Button::Ok, this);
+        /*test_doc.toJson(QJsonDocument::Compact)*/text_doc, QMessageBox::Button::Ok, this);
+    QGridLayout* layout = (QGridLayout*)message->layout();
+    layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+
     message->setDefaultButton(QMessageBox::Button::Ok);
     message->open();
     connect(message, &QDialog::finished, this, [message] {
