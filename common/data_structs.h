@@ -192,38 +192,38 @@ public:
 };
 
 
-class MainStateConfigVar  {
+class BacklightConfigVar  {
     Q_GADGET
-    Q_ENUMS(State)
+    //Q_ENUMS(State)
 public:
 
-    enum State {
-        ONLINE,
-        OFFLINE,
-        BLOCKED,
-        SBLOCKED,
-    };
+    //enum State {
+   //     ONLINE,
+   //     OFFLINE,
+    //    BLOCKED,
+    //    SBLOCKED,
+    //};
 
-    MainStateConfigVar() :
-       _state(ONLINE) {
+    BacklightConfigVar() :
+       _value(100) {
 
     }
 
-    MainStateConfigVar(MainStateConfigVar::State state) {
-        setState(state);
+    BacklightConfigVar(quint8 value) {
+        setValue(value);
     }
 
-    MainStateConfigVar::State getState() const {
-        return _state;
+    quint8 getValues() const {
+        return _value;
     }
 
-    void setState(MainStateConfigVar::State new_state) {
-        _state = new_state;
+    void setValue(quint8 new_value) {
+        _value = new_value;
     }
 
 private:
-    State _state;
+    quint8 _value;
 };
-Q_DECLARE_METATYPE(MainStateConfigVar)
+Q_DECLARE_METATYPE(BacklightConfigVar)
 
 #endif // DATA_STRUCTURES_H

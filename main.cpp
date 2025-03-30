@@ -23,12 +23,11 @@ int main(int argc, char *argv[])
 #endif
 
     /* fill application info */
-    QCoreApplication::setOrganizationName("LLL");
+    QCoreApplication::setOrganizationName("Pusheen");
 
     QApplication a(argc, argv);
 
     qRegisterMetaType<rtl_433_supported_protocols>();
-
 
     /* open system config */
     SysConfig cfg(QString("%1/%2.conf")
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
     cfg.init();
 
 
-    MainWindow w;
+    MainWindow w(&cfg);
     w.show();
 
     return a.exec();

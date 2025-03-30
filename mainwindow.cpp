@@ -11,6 +11,7 @@
 #include <QBrush>
 #include <QJsonValue>
 #include <QCollator>
+#include "SysConfig.h"
 
 
 //// addons
@@ -20,10 +21,13 @@
 
 
 /* main class */
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), p_rtl433(NULL),
+MainWindow::MainWindow(SysConfig *sysCfg, QWidget *parent) :
+    QMainWindow(parent), p_rtl433(NULL), p_linux(NULL),
     ui(new Ui::MainWindow)
 {
+    Q_ASSERT(sysCfg);
+    this->sysCfg = sysCfg;
+
     ui->setupUi(this);
 
    /* setting default tabwidget */
@@ -39,6 +43,10 @@ MainWindow::~MainWindow()
 
 bool MainWindow::initAllSubForms(QWidget *parent)
 {
+/// disable debug tab for the default
+    ui->tabWidgetMain->setTabVisible(EN_DEBUG_TAB_INDEX, false);
+
+/// prepering freq changing form
     p_freq_form = new freq_change_form(parent);
     p_freq_form->hide();
 
@@ -49,6 +57,9 @@ bool MainWindow::initAllSubForms(QWidget *parent)
 
 bool MainWindow::initAll()
 {
+/**** register meta types from data structs */
+    data_structs_register_meta_types();
+
     //!    connect(client, &ClientSideEmulation::onFinishRead, this, &MainWindow::slot_fillDbgLog);
 
     initAllSubForms(this);
@@ -57,7 +68,8 @@ bool MainWindow::initAll()
     ui->pushButtonRTL433Ctrl->setStyleSheet("background-color: blue");
     ui->pushButtonMainStart->setStyleSheet("background-color: blue");
 
-/* init class */
+/* init classes */
+// RTL433
     p_rtl433 = new rtl_433(this);
 
     /* sometimes need stop firstly the rtl_433 */
@@ -66,6 +78,8 @@ bool MainWindow::initAll()
 /* connetion slots for the rtl_433 */
     connect(p_rtl433, &rtl_433::signal_rtl433ProcessRawOutput, this, &MainWindow::slot_fillRTL433RawLog);
  //....
+// linux shell commands
+    p_linux = new linux_shell(this);
 
 /* main tab */
     {
@@ -85,6 +99,16 @@ bool MainWindow::initAll()
     //
     ui->textEditRTL433RawLog->setVerticalScrollBar(textEditRTL433RawLogBar);
 
+/* settings tab */
+    ui->settingsTabSliderBacklight->setStyleSheet("QSlider::handle:horizontal { \
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f); \
+        border: 2px solid #5c5c5c; \
+        width: 28px; \
+        margin: -2px 0; \
+        border-radius: 5px; \
+        }");
+
+
 #if 0
     ///////////////// main list DBG
     ///
@@ -97,6 +121,9 @@ bool MainWindow::initAll()
     };
     //////////////////////////////////////////
 #endif
+
+/* preinit forms if need */
+    on_tabWidgetMain_currentChanged(ui->tabWidgetMain->currentIndex());
 
     return true;
 }
@@ -354,21 +381,61 @@ void MainWindow::on_pushButtonRTL433Ctrl_clicked(bool state)
     }
 }
 
-///////////////////// Debug section in the TABS /////////////////////
+///////////////////// Setting section in the TABS /////////////////////
 
-
-void MainWindow::on_testPushButton_pressed()
+void MainWindow::on_pushButtonReboot_clicked()
 {
-    QList<rtl_433_supported_protocols> list;
-    p_rtl433->get_supported_protocols_rtl433(list);
+    ui->pushButtonReboot->setEnabled(false);
 
-    qDebug() << list << Qt::endl;
+    /* reboot this device */
+    QColor col = QColor(Qt::red);
+    if(col.isValid()) {
+       QString qss = QString("background-color: %1").arg(col.name());
+       ui->pushButtonReboot->setStyleSheet(qss);
+    };
+
+    p_linux->reboot();
 }
 
-void MainWindow::on_testPushButton_2_pressed()
+void MainWindow::on_pushButtonPowerOff_clicked()
 {
-p_freq_form->show();
+    ui->pushButtonPowerOff->setEnabled(false);
+
+    /* reboot this device */
+    QColor col = QColor(Qt::red);
+    if(col.isValid()) {
+       QString qss = QString("background-color: %1").arg(col.name());
+       ui->pushButtonPowerOff->setStyleSheet(qss);
+    };
+
+    p_linux->poweroff();
 }
 
-//!testPushButton_2
+void MainWindow::on_settingsTabSliderBacklight_valueChanged(int value)
+{
+    const quint8 backlight = (value < 0) ? 0 : (value > 255) ? 255 : value;
 
+    p_linux->set_backlight(backlight);
+    sysCfg->getGeneralConfig()->setBacklightValue(backlight);
+}
+
+
+void MainWindow::on_checkBoxEnableDebug_clicked(bool checked)
+{
+    ui->tabWidgetMain->setTabVisible(EN_DEBUG_TAB_INDEX, checked);
+}
+
+bool MainWindow::init_setting_tab() {
+    const quint8 backlight = sysCfg->getGeneralConfig()->getBacklightValue();
+
+    ui->settingsTabSliderBacklight->setValue(backlight);
+
+    return true;
+}
+
+void MainWindow::on_tabWidgetMain_currentChanged(int index)
+{
+    if(EN_SETTING_TAB_INDEX == index) {
+        init_setting_tab();
+    };
+}

@@ -48,18 +48,6 @@ bool linux_shell::kill_linux_process(const QString & processName)
     return true;
 }
 
-
-
-void linux_shell::reboot()
-{
-#if !defined(USE_DEBUGGER)
-    QProcess proc;
-    proc.start(QString("reboot"));
-    proc.waitForStarted();
-    proc.waitForFinished();
-#endif
-}
-
 bool linux_shell::setSystemDateTime(const QDateTime &newDateTime)
 {
     QProcess proc;
@@ -103,40 +91,61 @@ bool linux_shell::runCmd(const QString& cmd) {
     return true;
 }
 
-void linux_shell::downloadCmd(const QString& cmd) {
-//    QProcess proc;
-    //connect(&proc, &QProcess::readyReadStandardOutput, this, &linux_shell::processOutput);
-    connect(&proc, &QProcess::readyReadStandardError, this, &linux_shell::processOutput);
-    proc.start(cmd);
-    proc.waitForStarted();
-    proc.waitForFinished(30*60*1000);
-    //disconnect(&proc, &QProcess::readyReadStandardOutput, this, &linux_shell::processOutput);
-    disconnect(&proc, &QProcess::readyReadStandardError, this, &linux_shell::processOutput);
-    /* get return value */
-    if(proc.exitCode() != 0) {
-        LOG(LOG_ERR, QString("Error while running %1: %2; exitCode: %3").arg(cmd).arg(QString(proc.readAllStandardError())).arg(proc.exitCode()));
-        Q_EMIT downloadError();
-        //wt->downloadError(QNetworkReply::NetworkError::UnknownNetworkError);
-        return;
-    }
-    LOG(LOG_INFO, QString("Running %1 successful.").arg(cmd));
-    Q_EMIT downloadFinished();
-    //wt->downloadFinished();
-    return;
+void linux_shell::reboot()
+{
+    const QString _cmd = "reboot";
+    system(_cmd.toStdString().c_str());
 }
 
-void linux_shell::processOutput() {
-    QString res;
-    //QString percent = proc.readAllStandardOutput();
-    QString percent = proc.readAllStandardError();
-    percent.remove(QRegExp("[# %]"));
-    QStringList percentList = percent.split('\r', QString::SkipEmptyParts);
-    if (!percentList.isEmpty()) {
-        res = percentList.last();
-    } else {
-        res = QString();
-    }
-    //qDebug() << percent;
-    Q_EMIT downloadProcessOutput(res);
+void linux_shell::poweroff()
+{
+    const QString _cmd = "poweroff";
+    system(_cmd.toStdString().c_str());
 }
+
+
+const char *const _path_brigness = "/sys/class/backlight/backlight/brightness";
+
+quint8 linux_shell::get_backlight()
+{
+    QProcess proc;
+    const QString _cmd = "cat";
+    const QStringList _args = { _path_brigness };
+
+    proc.start(_cmd, _args);
+    proc.waitForStarted();
+    proc.waitForFinished();
+
+    /* get return value */
+    if(proc.exitCode() != 0) {
+        LOG(LOG_ERR, QString("Error while running %1: %2")
+            .arg(QString(__func__))
+            .arg(QString(proc.readAllStandardError())));
+        return 0;
+    };
+
+    bool is_true = false;
+    quint8 baclight_value = proc.readAllStandardOutput().toUShort(&is_true, 10);
+
+    if(false == is_true) {
+        return 0;
+    }
+
+    return baclight_value;
+}
+
+bool linux_shell::set_backlight(const quint8 new_backlight)
+{
+    QProcess proc;
+    int ret = 0;
+
+    const QString _cmd = QString("echo -n %1 > %2")
+            .arg(QString::number(new_backlight, 10))
+            .arg(_path_brigness);
+
+    ret = system(_cmd.toStdString().c_str());
+
+    return (ret == 0);
+}
+
 

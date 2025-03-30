@@ -24,30 +24,21 @@ public:
      * @return
      */
     static bool setSystemDateTime(const QDateTime &newDateTime);
-
     static bool setSystemDateTimeFromRtc();
 
     static bool runCmd(const QString& cmd);
 
-    /**
-     * @brief isDBFSmounted
-     * @return return true if DBFS mounted fine
-     */
-    static bool isDBFSmounted(void);
-
 public Q_SLOTS:
-    void downloadCmd(const QString& cmd);
-    void processOutput();
     void run();
     void reboot();
+    void poweroff();
+
+    quint8 get_backlight();
+    bool set_backlight(const quint8 new_backlight);
+
 
 Q_SIGNALS:
     void logResult(const QStringList &log);
-    void downloadError();
-    void downloadFinished();
-    void downloadProcessOutput(const QString& percent);
-    void decompressOK();
-    void decompressFAIL();
 
 };
 

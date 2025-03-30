@@ -5,9 +5,6 @@
 #include "generalconfig.h"
 #include "settings.h"
 
-
-
-
 SysConfig::SysConfig(const QString &filename, QObject *parent) :
         QObject(parent), st(Q_NULLPTR)
 
@@ -21,7 +18,6 @@ SysConfig::SysConfig(const QString &filename, QObject *parent) :
 
      st = new Settings(filename);
     Q_ASSERT(st);
-
 }
 
 SysConfig::~SysConfig()

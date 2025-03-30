@@ -12,8 +12,8 @@ class GeneralConfig : public QObject {
 public:
     GeneralConfig(QObject *parent);
 
-    MainStateConfigVar::State getMainState() const;
-    void setMainState(MainStateConfigVar::State next_state);
+    quint8 getBacklightValue() const;
+    void setBacklightValue(quint8 value);
 
 private:
     SysConfig *sysConfig;

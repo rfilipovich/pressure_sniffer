@@ -20,8 +20,7 @@ public:
     };
 
     enum Key {
-        Id,
-        MainState,
+        Backlight,
     };
 
     Settings(const QString &filename);

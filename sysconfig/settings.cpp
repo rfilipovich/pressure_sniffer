@@ -93,7 +93,7 @@ QString Settings::keyToString(Key k) {
 QString Settings::keyPath(Section s, Key k){
     auto szSection = sections.valueToKey(s);
     auto szKey = keys.valueToKey(k);
-    return ((General == s) ?
-        QString("%1").arg(szKey) :
+    return (/*(General == s) ?
+        QString("%1").arg(szKey) :*/
         QString("%2/%1").arg(szKey).arg(szSection));
 }

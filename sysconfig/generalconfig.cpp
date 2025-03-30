@@ -15,12 +15,12 @@ GeneralConfig::GeneralConfig(QObject *parent) :
  * @brief GeneralConfig::getMainState
  * @return
  */
-MainStateConfigVar::State GeneralConfig::getMainState() const
+quint8 GeneralConfig::getBacklightValue() const
 {
-    return static_cast<MainStateConfigVar::State>(sysConfig->st->get(Settings::MainState, Settings::General).toInt());
+    return static_cast<quint8>(sysConfig->st->get(Settings::Backlight, Settings::General).toUInt());
 }
 
-void GeneralConfig::setMainState(MainStateConfigVar::State next_state)
+void GeneralConfig::setBacklightValue(quint8 value)
 {
-    sysConfig->st->set(Settings::MainState, Settings::General) = next_state;
+    sysConfig->st->set(Settings::Backlight, Settings::General) = value;
 }
