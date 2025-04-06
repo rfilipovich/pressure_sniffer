@@ -36,6 +36,8 @@ public Q_SLOTS:
     quint8 get_backlight();
     bool set_backlight(const quint8 new_backlight);
 
+/* batery */
+    quint8 get_battery_level();
 
 Q_SIGNALS:
     void logResult(const QStringList &log);

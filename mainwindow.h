@@ -17,8 +17,8 @@ enum {
 };
 
 /* some defines */
-#define MAIN_TAB_CURENT_INDEX (2)
-//!#define MAIN_TAB_CURENT_INDEX ( EN_MAIN_TAB_INDEX)
+//#define MAIN_TAB_CURENT_INDEX (EN_SETTING_TAB_INDEX)
+#define MAIN_TAB_CURENT_INDEX ( EN_MAIN_TAB_INDEX)
 
 namespace Ui {
 class MainWindow;
@@ -94,6 +94,8 @@ private slots:
     void on_checkBoxEnableDebug_clicked(bool checked);
 
     void on_tabWidgetMain_currentChanged(int index);
+
+    void on_pushButtonTest_pressed();
 
 private:
 // objects

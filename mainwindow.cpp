@@ -439,3 +439,9 @@ void MainWindow::on_tabWidgetMain_currentChanged(int index)
         init_setting_tab();
     };
 }
+
+void MainWindow::on_pushButtonTest_pressed()
+{
+    quint8 per = p_linux->get_battery_level();
+    ui->progressBarBatteryLevel->setValue(per);
+}

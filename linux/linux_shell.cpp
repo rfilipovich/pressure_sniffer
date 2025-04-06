@@ -149,3 +149,73 @@ bool linux_shell::set_backlight(const quint8 new_backlight)
 }
 
 
+const char *const _path_battery_adc_raw = "/sys/bus/iio/devices/iio\:device0/in_voltage1_raw";
+const char *const _path_battery_voltage_scale = "/sys/bus/iio/devices/iio\:device0/in_voltage_scale";
+
+/**
+ * @brief linux_shell::get_battery_level
+ * @return 0..100 current battery level
+ */
+quint8 linux_shell::get_battery_level()
+{
+    QProcess proc;
+    const QString _cmd = "cat";
+    quint16 adc_value = 0;
+    double scaller_value = 0.0;
+
+    {
+        const QStringList _args = { _path_battery_adc_raw };
+
+        proc.start(_cmd, _args);
+        proc.waitForStarted();
+        proc.waitForFinished();
+
+        /* get return value */
+        if(proc.exitCode() != 0) {
+            LOG(LOG_ERR, QString("Error while running %1: %2")
+                .arg(QString(__func__))
+                .arg(QString(proc.readAllStandardError())));
+            return 0;
+        };
+
+        bool is_true = false;
+        adc_value = proc.readAllStandardOutput().toUShort(&is_true, 10);
+        if(false == is_true) {
+            return 0;
+        };
+    }
+
+    {/* get voltage scaller value */
+        const QStringList _args = { _path_battery_voltage_scale };
+
+        proc.start(_cmd, _args);
+        proc.waitForStarted();
+        proc.waitForFinished();
+
+        /* get return value */
+        if(proc.exitCode() != 0) {
+            LOG(LOG_ERR, QString("Error while running %1: %2")
+                .arg(QString(__func__))
+                .arg(QString(proc.readAllStandardError())));
+            return 0;
+        };
+
+        bool is_true = false;
+        scaller_value = proc.readAllStandardOutput().toDouble(&is_true);
+        if(false == is_true) {
+            return 0;
+        }
+    };
+
+    /* calculte battery level */
+    double battery_value = scaller_value * adc_value * ((3000.0+6200.0)/3000.0);
+
+    quint8 percent = ((battery_value - 3000.0)/(4100.0 - 3000.0))*100;
+    if(battery_value <= 3000.0)
+        percent = 0;
+    if(battery_value >= 4100.0)
+       percent = 100;
+
+    return  percent;
+}
+
